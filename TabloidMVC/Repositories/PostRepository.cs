@@ -151,7 +151,6 @@ namespace TabloidMVC.Repositories
                                     Title = @title,
                                     Content = @content,
                                     ImageLocation = @imageLocation,
-                                    CreateDateTime = @createDateTime,
                                     PublishDateTime = @publishDateTime,
                                     IsApproved = @isApproved,
                                     CategoryId = @categoryId,
@@ -159,7 +158,6 @@ namespace TabloidMVC.Repositories
                                 WHERE Id = @id";
                     cmd.Parameters.AddWithValue("@title", post.Title);
                     cmd.Parameters.AddWithValue("@content", post.Content);
-                    cmd.Parameters.AddWithValue("@createDateTime", post.CreateDateTime);
                     cmd.Parameters.AddWithValue("@ImageLocation", DbUtils.ValueOrDBNull(post.ImageLocation));
                     cmd.Parameters.AddWithValue("@PublishDateTime", DbUtils.ValueOrDBNull(post.PublishDateTime));
                     cmd.Parameters.AddWithValue("@isApproved", post.IsApproved);
@@ -238,6 +236,21 @@ namespace TabloidMVC.Repositories
             
           
 
+        }
+
+        public void DeletePost(int postId)
+        {
+            using(SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using(SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"DELETE FROM Post WHERE Id = @id";
+                    cmd.Parameters.AddWithValue("@id", postId);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
         
     }
