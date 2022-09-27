@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using System.Collections.Generic;
 using TabloidMVC.Models;
 using TabloidMVC.Utils;
 
@@ -8,6 +10,37 @@ namespace TabloidMVC.Repositories
     {
         public UserProfileRepository(IConfiguration config) : base(config) { }
 
+        public List<UserProfile> GetAllUsers()
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Id, DisplayName, FirstName, Email, CreateDateTime, ImageLocation, UserTypeId FROM UserProfile";
+                    var reader = cmd.ExecuteReader();
+
+                    var profiles = new List<UserProfile>();
+
+                    while (reader.Read())
+                    {
+                        profiles.Add(new UserProfile()
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            DisplayName = reader.GetString(reader.GetOrdinal("DisplayName")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            Email = reader.GetString(reader.GetOrdinal("Email")),
+                            CreateDateTime = reader.GetDateTime(reader.GetOrdinal("CreateDateTime")),
+                            UserTypeId = reader.GetInt32(reader.GetOrdinal("UserTypeId")),
+                            ImageLocation = DbUtils.GetNullableString(reader, "ImageLocation")
+                        });
+                    }
+                    reader.Close();
+
+                    return profiles;
+                }
+            }
+        }
         public UserProfile GetByEmail(string email)
         {
             using (var conn = Connection)
