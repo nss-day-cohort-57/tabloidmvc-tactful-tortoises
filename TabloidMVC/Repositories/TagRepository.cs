@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using TabloidMVC.Models;
+using TabloidMVC.Utils;
 
 namespace TabloidMVC.Repositories
 {
@@ -31,6 +32,25 @@ namespace TabloidMVC.Repositories
                     reader.Close();
 
                     return tags;
+                }
+            }
+        }
+
+        public void AddTag(Tag tag)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        INSERT INTO Tag ( Name )
+                        OUTPUT INSERTED.ID
+                        VALUES ( @Name )";
+                    
+                    cmd.Parameters.AddWithValue("@Name", tag.Name);
+
+                    tag.Id = (int)cmd.ExecuteScalar();
                 }
             }
         }
