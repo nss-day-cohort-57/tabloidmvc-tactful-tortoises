@@ -137,6 +137,47 @@ namespace TabloidMVC.Repositories
             }
         }
 
+        public List<Post> GetPostsByUserId(int userId)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                    SELECT Id, Title, Content, ImageLocation, CreateDateTime, PublishDateTime, IsApproved, CategoryId, UserProfileId
+                    FROM Post
+                    WHERE UserProfileId = @userId";
+
+                    cmd.Parameters.AddWithValue("@userId", userId);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        List<Post> posts = new List<Post>();
+
+                        while (reader.Read())
+                        {
+                            Post post = new Post()
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                Title = reader.GetString(reader.GetOrdinal("Title")),
+                                ImageLocation = reader.GetString(reader.GetOrdinal("ImageLocation")),
+                                CreateDateTime = reader.GetDateTime(reader.GetOrdinal("CreateDateTime")),
+                                PublishDateTime = reader.GetDateTime(reader.GetOrdinal("PublishDateTime")),
+                                IsApproved = reader.GetBoolean(reader.GetOrdinal("IsApproved")),
+                                CategoryId = reader.GetInt32(reader.GetOrdinal("CategoryId")),
+                                UserProfileId = reader.GetInt32(reader.GetOrdinal("UserProfileId"))
+                            };
+
+                            posts.Add(post);
+                        }
+                        return posts;
+                    }
+                }
+            }
+        }
+
         public void UpdatePost(Post post)
         {
             using (SqlConnection conn = Connection)
