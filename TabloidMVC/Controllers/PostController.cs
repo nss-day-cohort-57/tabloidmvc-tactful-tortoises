@@ -16,11 +16,12 @@ namespace TabloidMVC.Controllers
     {
         private readonly IPostRepository _postRepository;
         private readonly ICategoryRepository _categoryRepository;
-
-        public PostController(IPostRepository postRepository, ICategoryRepository categoryRepository)
+        private readonly ICommentRepository _commentRepository;
+        public PostController(IPostRepository postRepository, ICategoryRepository categoryRepository, ICommentRepository commentRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
+            _commentRepository = commentRepository;
         }
 
         public IActionResult Index()
@@ -43,6 +44,8 @@ namespace TabloidMVC.Controllers
             }
             return View(post);
         }
+
+       
 
         public IActionResult Create()
         {
