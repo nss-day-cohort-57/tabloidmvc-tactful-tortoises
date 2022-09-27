@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using TabloidMVC.Models;
 using TabloidMVC.Utils;
 
@@ -41,6 +43,7 @@ namespace TabloidMVC.Repositories
                     while (reader.Read())
                     {
                         posts.Add(NewPostFromReader(reader));
+                        
                     }
 
                     reader.Close();
@@ -82,7 +85,9 @@ namespace TabloidMVC.Repositories
                     if (reader.Read())
                     {
                         post = NewPostFromReader(reader);
+                        
                     }
+                    
 
                     reader.Close();
 
@@ -132,6 +137,40 @@ namespace TabloidMVC.Repositories
             }
         }
 
+        public void UpdatePost(Post post)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                
+                using(SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @" 
+                                UPDATE POST
+                                SET
+                                    Title = @title,
+                                    Content = @content,
+                                    ImageLocation = @imageLocation,
+                                    CreateDateTime = @createDateTime,
+                                    PublishDateTime = @publishDateTime,
+                                    IsApproved = @isApproved,
+                                    CategoryId = @categoryId,
+                                    UserProfileId = @userProfileId
+                                WHERE Id = @id";
+                    cmd.Parameters.AddWithValue("@title", post.Title);
+                    cmd.Parameters.AddWithValue("@content", post.Content);
+                    cmd.Parameters.AddWithValue("@createDateTime", post.CreateDateTime);
+                    cmd.Parameters.AddWithValue("@ImageLocation", DbUtils.ValueOrDBNull(post.ImageLocation));
+                    cmd.Parameters.AddWithValue("@PublishDateTime", DbUtils.ValueOrDBNull(post.PublishDateTime));
+                    cmd.Parameters.AddWithValue("@isApproved", post.IsApproved);
+                    cmd.Parameters.AddWithValue("@categoryId", post.CategoryId);
+                    cmd.Parameters.AddWithValue("@userProfileId", post.UserProfileId);
+                    cmd.Parameters.AddWithValue("@id", post.Id);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
         public void Add(Post post)
         {
@@ -164,7 +203,7 @@ namespace TabloidMVC.Repositories
 
         private Post NewPostFromReader(SqlDataReader reader)
         {
-            return new Post()
+            return new Post
             {
                 Id = reader.GetInt32(reader.GetOrdinal("Id")),
                 Title = reader.GetString(reader.GetOrdinal("Title")),
@@ -186,8 +225,8 @@ namespace TabloidMVC.Repositories
                     LastName = reader.GetString(reader.GetOrdinal("LastName")),
                     DisplayName = reader.GetString(reader.GetOrdinal("DisplayName")),
                     Email = reader.GetString(reader.GetOrdinal("Email")),
-                    CreateDateTime = reader.GetDateTime(reader.GetOrdinal("CreateDateTime")),
                     ImageLocation = DbUtils.GetNullableString(reader, "AvatarImage"),
+                    CreateDateTime = reader.GetDateTime(reader.GetOrdinal("CreateDateTime")),
                     UserTypeId = reader.GetInt32(reader.GetOrdinal("UserTypeId")),
                     UserType = new UserType()
                     {
@@ -196,6 +235,14 @@ namespace TabloidMVC.Repositories
                     }
                 }
             };
+            
+          
+
         }
+        
     }
 }
+    
+
+    
+
