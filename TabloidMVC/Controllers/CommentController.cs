@@ -6,6 +6,7 @@ using TabloidMVC.Models.ViewModels;
 using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.VisualBasic;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace TabloidMVC.Controllers
 {
@@ -72,17 +73,26 @@ namespace TabloidMVC.Controllers
         // GET: HomeController1/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            var vm = new CommentCreateViewModel();
+            vm.Comment = _commentRepository.GetCommentById(id);
+            vm.PostId = vm.Comment.PostId;
+            if(vm.Comment.UserProfileId != GetCurrentUserProfileId())
+            {
+                return NotFound();
+            }
+            return View(vm);
         }
 
         // POST: HomeController1/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(Comment Comment, int postId)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                
+                _commentRepository.UpdateComment(Comment);
+                return RedirectToAction("Index", new { id = Comment.PostId });
             }
             catch
             {
