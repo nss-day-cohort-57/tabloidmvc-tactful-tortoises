@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using TabloidMVC.Models;
 
 namespace TabloidMVC.Models.ViewModels
 {
-    public class CommentCreateViewModel
+    public class CommentPostViewModel
     {
         public int PostId { get; set; }
-        public Comment Comment { get; set; }
+        public List<Comment> Comments { get; set;}
     }
 }

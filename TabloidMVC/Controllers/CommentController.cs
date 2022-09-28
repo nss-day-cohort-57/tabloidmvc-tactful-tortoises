@@ -21,34 +21,47 @@ namespace TabloidMVC.Controllers
             _commentRepository = commentRepository;
         }
         // GET: HomeController1
-        public ActionResult Index(int postId)
+        public ActionResult Index(int id)
         {
-            List<Comment> comments = _commentRepository.GetCommentsByPostId(postId);
-            return View(comments);
+            List<Comment> comments = _commentRepository.GetCommentsByPostId(id);
+            var vm = new CommentPostViewModel();
+            vm.PostId = id;
+            vm.Comments = comments;
+
+            return View(vm);
         }
 
         // GET: HomeController1/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            List<Comment> comments = _commentRepository.GetCommentsByPostId(id);
+            var vm = new CommentPostViewModel();
+            vm.PostId = id;
+            vm.Comments = comments;
+
+            return View(vm);
         }
 
         // GET: HomeController1/Create
-        public ActionResult Create(int postId)
+        public ActionResult Create(int id)
         {
-            return View();
+            var vm = new CommentCreateViewModel();
+            vm.PostId = id;
+            return View(vm);
         }
 
         // POST: HomeController1/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Comment comment)
+        public ActionResult Create(CommentCreateViewModel vm, int id)
         {
             try
             {
-                comment.UserProfileId = GetCurrentUserProfileId();
-                comment.CreateDateTime = DateAndTime.Now;
-                //comment.PostId =
+                vm.Comment.UserProfileId = GetCurrentUserProfileId();
+                vm.Comment.CreateDateTime = DateAndTime.Now;
+                vm.Comment.PostId = id;
+
+                _commentRepository.Add(vm.Comment);
 
                 return RedirectToAction(nameof(Index));
             }
