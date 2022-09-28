@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using TabloidMVC.Models;
 
@@ -14,7 +16,7 @@ namespace TabloidMVC.Repositories
                 conn.Open();
                 using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT id, name FROM Category";
+                    cmd.CommandText = @"SELECT Id, Name FROM Category ORDER BY Name";
                     var reader = cmd.ExecuteReader();
 
                     var categories = new List<Category>();
@@ -31,6 +33,25 @@ namespace TabloidMVC.Repositories
                     reader.Close();
 
                     return categories;
+                }
+            }
+        }
+
+        public void AddCategory(Category category)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                    INSERT INTO Category (Name)
+                    OUTPUT INSERTED.Id
+                    VALUES (@name)";
+                    cmd.Parameters.AddWithValue("@name", category.Name);
+
+                    int newlyCreatedId = (int)cmd.ExecuteScalar();
+                    category.Id = newlyCreatedId;
                 }
             }
         }

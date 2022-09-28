@@ -24,8 +24,10 @@ namespace TabloidMVC.Controllers
         public ActionResult Index(int id)
         {
             List<Comment> comments = _commentRepository.GetCommentsByPostId(id);
+            Post post = _postRepository.GetPublishedPostById(id);
             var vm = new CommentPostViewModel();
             vm.PostId = id;
+            vm.Post = post;
             vm.Comments = comments;
 
             return View(vm);
@@ -34,12 +36,8 @@ namespace TabloidMVC.Controllers
         // GET: HomeController1/Details/5
         public ActionResult Details(int id)
         {
-            List<Comment> comments = _commentRepository.GetCommentsByPostId(id);
-            var vm = new CommentPostViewModel();
-            vm.PostId = id;
-            vm.Comments = comments;
-
-            return View(vm);
+            
+            return View();
         }
 
         // GET: HomeController1/Create
@@ -63,7 +61,7 @@ namespace TabloidMVC.Controllers
 
                 _commentRepository.Add(vm.Comment);
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", new { id = vm.Comment.PostId });
             }
             catch
             {
