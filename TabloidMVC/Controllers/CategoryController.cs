@@ -33,6 +33,36 @@ namespace TabloidMVC.Controllers
             return View();
         }
 
+        public IActionResult Edit(int id)
+        {
+            Category category = _categoryRepository.GetCategoryById(id);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            return View(category);
+        }
+
+        // POST: Owners/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, Category category)
+        {
+            try
+            {
+                category.Id = id;
+                _categoryRepository.UpdateCategory(category);
+
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                return View(category);
+            }
+        }
+
         // GET: CategoryController/Create
         public ActionResult Create()
         {
