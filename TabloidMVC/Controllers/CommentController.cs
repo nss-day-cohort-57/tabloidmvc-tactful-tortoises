@@ -74,7 +74,13 @@ namespace TabloidMVC.Controllers
         // GET: HomeController1/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            var vm = new CommentCreateViewModel();
+            vm.Comment = _commentRepository.GetCommentById(id);
+            if(vm.Comment.UserProfileId != GetCurrentUserProfileId())
+            {
+                return NotFound();
+            }
+            return View(vm);
         }
 
         // POST: HomeController1/Edit/5
