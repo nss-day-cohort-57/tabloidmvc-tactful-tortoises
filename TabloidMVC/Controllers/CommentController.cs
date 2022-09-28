@@ -101,19 +101,31 @@ namespace TabloidMVC.Controllers
         }
 
         // GET: HomeController1/Delete/5
-        public ActionResult Delete(int id)
+        public IActionResult Delete(int id, int postId)
         {
-            return View();
+            var vm = new CommentDeleteViewModel();
+            vm.Comment = _commentRepository.GetCommentById(id);
+            vm.PostId=postId;   
+            if (vm.Comment.UserProfileId == GetCurrentUserProfileId())
+            {
+                return View(vm);
+            }
+            else
+            {
+                return NotFound();
+            }
         }
 
-        // POST: HomeController1/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(CommentDeleteViewModel vm, int id, int postId)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                Comment comment = _commentRepository.GetCommentById(id);
+                int PostId = comment.PostId;
+                _commentRepository.DeleteComment(id);
+                return RedirectToAction("Index", new { id = PostId });
             }
             catch
             {
