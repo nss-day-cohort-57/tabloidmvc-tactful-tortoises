@@ -17,9 +17,12 @@ namespace TabloidMVC.Repositories
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                            SELECT Id, Subject, Content, CreateDateTime, PostId, UserProfileId
-                            FROM Comment
-                            WHERE PostId = @postId";
+                            SELECT C.Id, C.Subject, C.Content, C.CreateDateTime, C.PostId, C.UserProfileId, U.DisplayName, P.Title
+                            FROM Comment C
+                            LEFT JOIN UserProfile U ON U.Id = C.UserProfileId
+                            LEFT JOIN Post P ON P.Id = C.PostId
+                            WHERE PostId = @postId
+                            ORDER BY CreateDateTime DESC";
                     cmd.Parameters.AddWithValue("@postId", postId);
                     var reader = cmd.ExecuteReader();
 
@@ -35,7 +38,17 @@ namespace TabloidMVC.Repositories
                                 Content = reader.GetString(reader.GetOrdinal("Content")),
                                 CreateDateTime = reader.GetDateTime(reader.GetOrdinal("CreateDateTime")),
                                 PostId = reader.GetInt32(reader.GetOrdinal("PostId")),
+                                Post = new Post()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("PostId")),
+                                    Title = reader.GetString(reader.GetOrdinal("Title")),
+                                },
                                 UserProfileId = reader.GetInt32(reader.GetOrdinal("UserProfileId")),
+                                UserProfile = new UserProfile()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("UserProfileId")),
+                                    DisplayName = reader.GetString(reader.GetOrdinal("DisplayName"))
+                                }
                             }
                             );
 
