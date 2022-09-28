@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic;
@@ -57,7 +58,7 @@ namespace TabloidMVC.Controllers
 
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return View(category);
             }
@@ -79,10 +80,39 @@ namespace TabloidMVC.Controllers
                 _categoryRepository.AddCategory(category);
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
+                return View(category);
+            }
+        }
+
+        // GET: CategoryController/Delete/5
+        public ActionResult Delete(int id)
+        {
+            
+            var category = _categoryRepository.GetCategoryById(id);
+            return View(category);
+        }
+
+        // POST: CategoryController/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        
+        public ActionResult Delete(int id, Category category)
+        {
+            try
+            {
+                
+                _categoryRepository.DeleteCategory(id);
+                return RedirectToAction("Index");
+            }
+            
+            catch (Exception)
+            {
+                
                 return View(category);
             }
         }
     }
 }
+
