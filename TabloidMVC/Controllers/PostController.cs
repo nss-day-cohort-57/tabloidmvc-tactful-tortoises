@@ -17,11 +17,13 @@ namespace TabloidMVC.Controllers
         private readonly IPostRepository _postRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly ICommentRepository _commentRepository;
-        public PostController(IPostRepository postRepository, ICategoryRepository categoryRepository, ICommentRepository commentRepository)
+        private readonly IUserProfileRepository _profileRepository;
+        public PostController(IPostRepository postRepository, ICategoryRepository categoryRepository, ICommentRepository commentRepository, IUserProfileRepository profileRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
             _commentRepository = commentRepository;
+            _profileRepository = profileRepository;
         }
 
         public IActionResult Index()
@@ -67,8 +69,16 @@ namespace TabloidMVC.Controllers
             try
             {
                 vm.Post.CreateDateTime = DateAndTime.Now;
-                vm.Post.IsApproved = true;
                 vm.Post.UserProfileId = GetCurrentUserProfileId();
+                UserProfile profile = _profileRepository.GetById(vm.Post.UserProfileId);
+                if (profile.UserType.Name == "admin")
+                {
+                    vm.Post.IsApproved = true;
+                }
+                else
+                {
+                    vm.Post.IsApproved = false;
+                }
 
                 _postRepository.Add(vm.Post);
 

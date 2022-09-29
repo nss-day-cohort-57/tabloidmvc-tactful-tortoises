@@ -158,9 +158,48 @@ namespace TabloidMVC.Repositories
                         LEFT JOIN Category c ON p.CategoryId = c.id
                         LEFT JOIN UserProfile u ON p.UserProfileId = u.id
                         LEFT JOIN UserType ut ON u.UserTypeId = ut.id
-                    WHERE p.UserProfileId = @userId AND IsApproved = 1 AND PublishDateTime < SYSDATETIME()";
+                    WHERE p.UserProfileId = @userId";
 
                     cmd.Parameters.AddWithValue("@userId", userId);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        List<Post> posts = new List<Post>();
+
+                        while (reader.Read())
+                        {
+                            posts.Add(NewPostFromReader(reader));
+
+                        }
+                        return posts;
+                    }
+                }
+            }
+        }
+
+        public List<Post> GetPendingPosts()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                    SELECT 
+                        p.Id, p.Title, p.Content, p.ImageLocation AS HeaderImage, p.CreateDateTime, 
+                        p.PublishDateTime, p.IsApproved, p.CategoryId, p.UserProfileId,
+                        c.[Name] AS CategoryName,
+                        u.FirstName, u.LastName, u.DisplayName AS DisplayName, 
+                        u.Email, u.CreateDateTime, u.ImageLocation AS AvatarImage,
+                        u.UserTypeId, 
+                        ut.[Name] AS UserTypeName
+                    FROM Post p
+                        LEFT JOIN Category c ON p.CategoryId = c.id
+                        LEFT JOIN UserProfile u ON p.UserProfileId = u.id
+                        LEFT JOIN UserType ut ON u.UserTypeId = ut.id
+                    WHERE p.UserProfileId = @userId AND IsApproved = false";
+
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
