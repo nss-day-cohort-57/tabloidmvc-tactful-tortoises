@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.Collections.Generic;
 using TabloidMVC.Models;
 using TabloidMVC.Utils;
@@ -87,6 +88,7 @@ namespace TabloidMVC.Repositories
             }
         }
 
+
         public UserProfile GetById(int id)
         {
             using (var conn = Connection)
@@ -124,11 +126,42 @@ namespace TabloidMVC.Repositories
                                 Name = reader.GetString(reader.GetOrdinal("UserTypeName"))
                             },
                         };
+
                     }
-
                     reader.Close();
-
                     return userProfile;
+                }
+
+            }
+        }
+
+
+        public void AddUser(UserProfile userProfile)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        INSERT INTO UserProfile (
+                            DisplayName, FirstName, LastName, Email, CreateDateTime,
+                            ImageLocation, UserTypeId )
+                        OUTPUT INSERTED.ID
+                        VALUES (
+                            @DisplayName, @FirstName, @LastName, @Email, @CreateDateTime,
+                            @ImageLocation, 2 )";
+                    /* In VALUES, UserTypeId is 2 because the Register Issue Ticket says the user type must be Author */
+                    userProfile.CreateDateTime = DateTime.Now;
+                    cmd.Parameters.AddWithValue("@DisplayName", userProfile.DisplayName);
+                    cmd.Parameters.AddWithValue("@FirstName", userProfile.FirstName);
+                    cmd.Parameters.AddWithValue("@LastName", userProfile.LastName);
+                    cmd.Parameters.AddWithValue("@Email", userProfile.Email);
+                    cmd.Parameters.AddWithValue("@CreateDateTime", userProfile.CreateDateTime);
+                    cmd.Parameters.AddWithValue("@ImageLocation", DbUtils.ValueOrDBNull(userProfile.ImageLocation));
+
+                    userProfile.Id = (int)cmd.ExecuteScalar();
+
                 }
             }
         }
