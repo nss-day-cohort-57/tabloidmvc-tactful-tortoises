@@ -74,8 +74,7 @@ namespace TabloidMVC.Repositories
                               LEFT JOIN Category c ON p.CategoryId = c.id
                               LEFT JOIN UserProfile u ON p.UserProfileId = u.id
                               LEFT JOIN UserType ut ON u.UserTypeId = ut.id
-                        WHERE IsApproved = 1 AND PublishDateTime < SYSDATETIME()
-                              AND p.id = @id";
+                        WHERE p.id = @id AND p.PublishDateTime < SYSDATETIME()";
 
                     cmd.Parameters.AddWithValue("@id", id);
                     var reader = cmd.ExecuteReader();
@@ -88,6 +87,48 @@ namespace TabloidMVC.Repositories
                         
                     }
                     
+
+                    reader.Close();
+
+                    return post;
+                }
+            }
+        }
+
+        public Post GetPostById(int id)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                       SELECT p.Id, p.Title, p.Content, 
+                              p.ImageLocation AS HeaderImage,
+                              p.CreateDateTime, p.PublishDateTime, p.IsApproved,
+                              p.CategoryId, p.UserProfileId,
+                              c.[Name] AS CategoryName,
+                              u.FirstName, u.LastName, u.DisplayName, 
+                              u.Email, u.CreateDateTime, u.ImageLocation AS AvatarImage,
+                              u.UserTypeId, 
+                              ut.[Name] AS UserTypeName
+                         FROM Post p
+                              LEFT JOIN Category c ON p.CategoryId = c.id
+                              LEFT JOIN UserProfile u ON p.UserProfileId = u.id
+                              LEFT JOIN UserType ut ON u.UserTypeId = ut.id
+                        WHERE p.id = @id";
+
+                    cmd.Parameters.AddWithValue("@id", id);
+                    var reader = cmd.ExecuteReader();
+
+                    Post post = null;
+
+                    if (reader.Read())
+                    {
+                        post = NewPostFromReader(reader);
+
+                    }
+
 
                     reader.Close();
 
@@ -198,7 +239,7 @@ namespace TabloidMVC.Repositories
                         LEFT JOIN Category c ON p.CategoryId = c.id
                         LEFT JOIN UserProfile u ON p.UserProfileId = u.id
                         LEFT JOIN UserType ut ON u.UserTypeId = ut.id
-                    WHERE p.UserProfileId = @userId AND IsApproved = false";
+                    WHERE IsApproved = 0";
 
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -207,29 +248,7 @@ namespace TabloidMVC.Repositories
 
                         while (reader.Read())
                         {
-                            Post post = new Post()
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                Title = reader.GetString(reader.GetOrdinal("Title")),
-                                ImageLocation = reader.GetString(reader.GetOrdinal("HeaderImage")),
-                                CreateDateTime = reader.GetDateTime(reader.GetOrdinal("CreateDateTime")),
-                                PublishDateTime = reader.GetDateTime(reader.GetOrdinal("PublishDateTime")),
-                                IsApproved = reader.GetBoolean(reader.GetOrdinal("IsApproved")),
-                                CategoryId = reader.GetInt32(reader.GetOrdinal("CategoryId")),
-                                UserProfileId = reader.GetInt32(reader.GetOrdinal("UserProfileId")),
-                                Category = new Category
-                                {
-                                    Id = reader.GetInt32(reader.GetOrdinal("CategoryId")),
-                                    Name = reader.GetString(reader.GetOrdinal("CategoryName"))
-                                },
-                                UserProfile = new UserProfile
-                                {
-                                    Id = reader.GetInt32(reader.GetOrdinal("UserProfileId")),
-                                    DisplayName = reader.GetString(reader.GetOrdinal("DisplayName"))
-                                }
-                            };
-
-                            posts.Add(post);
+                            posts.Add(NewPostFromReader(reader));
                         }
                         return posts;
                     }

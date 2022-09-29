@@ -1,0 +1,44 @@
+﻿@model TabloidMVC.Models.ViewModels.PendingPostViewModel
+
+@{
+    ViewData["Title"] = "PendingPosts";
+}
+
+<h1>Pending Posts</h1>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>User</th>
+            <th>Category</th>
+            <th>Publish Date</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model.Posts) {
+            
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UserProfile.DisplayName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Category.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.PublishDateTime)
+                    </td>
+                    <td>
+                    @Html.ActionLink("Approve Post", "ApprovePost", new {  id=item.Id  }) 
+                    </td>
+        
+           
+        </tr>
+}
+    </tbody>
+</table>
