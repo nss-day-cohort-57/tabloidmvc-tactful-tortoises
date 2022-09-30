@@ -1,0 +1,80 @@
+﻿@model TabloidMVC.Models.ViewModels.PostApprovalViewModel
+
+@{
+    ViewData["Title"] = "ApprovePost";
+}
+
+<h1>Approve Post</h1>
+
+<div class="container pt-5">
+    <div class="post">
+        <section class="px-3">
+            <div class="row justify-content-between">
+                <h1 class="text-secondary">@Model.Post.Title</h1>
+                <h1 class="text-black-50">@Model.Post.Category.Name</h1>
+            </div>
+            <div class="row justify-content-between">
+                <p class="text-secondary">Written by @Model.Post.UserProfile.DisplayName</p>
+                <p class="text-black-50">Published on @Html.DisplayFor(model => model.Post.PublishDateTime)</p>
+            </div>
+           
+        </section>
+        <hr />
+        @if (!string.IsNullOrWhiteSpace(Model.Post.ImageLocation))
+        {
+            <section class="row justify-content-center">
+                <div>
+                    <img src="@Model.Post.ImageLocation" />
+                </div>
+            </section>
+        }
+        <section class="row post__content">
+            <p class="col-sm-12 mt-5">@Html.DisplayFor(model => model.Post.Content)</p>
+        </section>
+    </div>
+</div>
+
+<div class="container pt-5">
+    <div class="post">
+        <section class="px-3">
+            <div class="row justify-content-between">
+               
+
+        <div class="col-md-4">
+        <form asp-action="ApprovePost">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+                  <div class="form-check form-switch">
+                 <input asp-for="Post.IsApproved" class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" />
+                 <label asp-for="Post.IsApproved" class="form-check-label" for="flexSwitchCheckDefault">Approved</label>
+               
+                <span asp-validation-for="Post.IsApproved" class="text-danger"></span>
+            
+            </div>
+            <div class="form-group">
+                <input asp-for="Post.Id" type="hidden" />
+                <input asp-for="Post.Title" type="hidden" />
+                <input asp-for="Post.Content" type="hidden" />
+                <input asp-for="Post.UserProfileId" type="hidden" />
+                <input asp-for="Post.CreateDateTime" type="hidden" />
+                <input asp-for="Post.PublishDateTime" type="hidden" />
+                <input asp-for="Post.CategoryId" type="hidden" />
+                <input asp-for="Post.ImageLocation" type="hidden" />
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+                       <a asp-action="PendingPosts">Cancel</a>
+        </form>
+        </div>
+</div>
+</section>
+
+
+</div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    }

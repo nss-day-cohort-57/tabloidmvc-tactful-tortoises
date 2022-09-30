@@ -17,11 +17,13 @@ namespace TabloidMVC.Controllers
         private readonly IPostRepository _postRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly ICommentRepository _commentRepository;
-        public PostController(IPostRepository postRepository, ICategoryRepository categoryRepository, ICommentRepository commentRepository)
+        private readonly IUserProfileRepository _profileRepository;
+        public PostController(IPostRepository postRepository, ICategoryRepository categoryRepository, ICommentRepository commentRepository, IUserProfileRepository profileRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
             _commentRepository = commentRepository;
+            _profileRepository = profileRepository;
         }
 
         public IActionResult Index()
@@ -37,6 +39,42 @@ namespace TabloidMVC.Controllers
             return View(posts);
         }
 
+        public IActionResult PendingPosts()
+        {
+            var vm = new PendingPostViewModel()
+            {
+                Posts = _postRepository.GetPendingPosts()
+            };
+           return View(vm);
+        }
+
+        public IActionResult ApprovePost(int id)
+        {
+            var vm = new PostApprovalViewModel()
+            {
+                Post = _postRepository.GetPostById(id)
+            };
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ApprovePost(PostApprovalViewModel vm, int id)
+        {
+            try
+            {
+               
+                vm.Post.IsApproved = true;
+
+                _postRepository.UpdatePost(vm.Post);
+                return RedirectToAction("PendingPosts");
+            }
+            catch
+            {
+               
+                return View(vm);
+            }
+        }
         public IActionResult Details(int id)
         {
             var post = _postRepository.GetPublishedPostById(id);
@@ -67,8 +105,16 @@ namespace TabloidMVC.Controllers
             try
             {
                 vm.Post.CreateDateTime = DateAndTime.Now;
-                vm.Post.IsApproved = true;
                 vm.Post.UserProfileId = GetCurrentUserProfileId();
+                UserProfile profile = _profileRepository.GetById(vm.Post.UserProfileId);
+                if (profile.UserType.Name == "Admin")
+                {
+                    vm.Post.IsApproved = true;
+                }
+                else
+                {
+                    vm.Post.IsApproved = false;
+                }
 
                 _postRepository.Add(vm.Post);
 
@@ -101,8 +147,6 @@ namespace TabloidMVC.Controllers
             try 
             {
                 vm.Post.Id = id;
-                vm.Post.CreateDateTime = DateAndTime.Now;
-                vm.Post.IsApproved = true;
                 vm.Post.UserProfileId = GetCurrentUserProfileId();
                
                 _postRepository.UpdatePost(vm.Post);
@@ -118,7 +162,7 @@ namespace TabloidMVC.Controllers
         public IActionResult Delete(int id)
         {
             var vm = new PostDeleteViewModel();
-            vm.Post = _postRepository.GetPublishedPostById(id);
+            vm.Post = _postRepository.GetPostById(id);
             if(vm.Post.UserProfileId == GetCurrentUserProfileId())
             {
                 return View(vm);
